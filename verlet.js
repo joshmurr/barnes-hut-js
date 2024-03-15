@@ -6,7 +6,7 @@ class VerletSystem {
     timeStep = 0.25,
     numIter = 4,
     worldMax = [256, 256],
-    mass = () => 100,
+    mass = () => 100 /* () => number */,
   }) {
     this.numParticles = num;
     this.radius = radius;
@@ -15,6 +15,7 @@ class VerletSystem {
     this.numIter = numIter;
     this.worldMax = worldMax;
     this.mass = mass;
+    this.accumTime = 0;
 
     this.init();
   }
@@ -51,6 +52,7 @@ class VerletSystem {
       this.acc[idx] = 0;
       this.acc[idx + 1] = 0;
     }
+    this.accumTime += this.timeStep;
   }
 
   accumulateForces() {
@@ -58,7 +60,7 @@ class VerletSystem {
       for (let force of this.forces) {
         const idx = i * 2;
         const [x, y] = this.pos.slice(idx, idx + 2);
-        const f = force(x, y);
+        const f = force.run(x, y);
         if (!f) continue;
         this.acc[idx] += f[0];
         this.acc[idx + 1] += f[1];
@@ -111,6 +113,10 @@ class VerletSystem {
     }
   }
 
+  get time() {
+    return this.accumTime;
+  }
+
   step() {
     this.accumulateForces();
     this.verlet();
@@ -123,7 +129,7 @@ class VerletSystem {
       const x = this.pos[idx];
       const y = this.pos[idx + 1];
 
-      ctx.fillStyle = "black";
+      ctx.fillStyle = "#C6C944";
       ctx.beginPath();
       ctx.arc(x, y, Math.sqrt(Math.abs(this.mass[i])), 0, Math.PI * 2);
       ctx.fill();
