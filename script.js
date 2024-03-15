@@ -5,6 +5,8 @@ const height = (canvas.height = 800);
 
 const mouse = [-1, -1];
 
+let DEBUG = 0;
+
 const attractCenter = new Force([width / 2, height / 2], 200, 100);
 attractCenter.runner = function (x, y, alpha = 0.1) {
   const dx = x - this.pos[0];
@@ -56,16 +58,29 @@ const step = () => {
   ctx.fillRect(0, 0, width, height);
   simulation.reset();
   simulation.buildTree();
-  // simulation.root.draw(ctx);
   for (let i = 0; i < verletSystem.numParticles; i++) {
     simulation.calculateForces(i);
   }
   repelMouse.step(mouse);
-  // repelCenter.draw(ctx);
+  if (DEBUG > 0) {
+    simulation.root.draw(ctx);
+    attractCenter.draw(ctx);
+    repelCenter.draw(ctx);
+    repelMouse.draw(ctx);
+  }
   verletSystem.step();
   verletSystem.draw(ctx);
   requestAnimationFrame(step);
 };
+
+document.getElementById("debug").addEventListener("click", () => {
+  DEBUG = !DEBUG;
+  if (DEBUG) {
+    document.getElementById("debug").innerText = "Debug: ON";
+  } else {
+    document.getElementById("debug").innerText = "Debug: OFF";
+  }
+});
 
 canvas.addEventListener("mousemove", (e) => {
   mouse[0] = e.clientX;
