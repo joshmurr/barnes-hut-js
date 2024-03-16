@@ -8,12 +8,24 @@
       canvas {
         border: 1px solid #aaa;
       }
+
+      button {
+        font-family: monospace;
+      }
+
+      .on {
+        background-color: #f00;
+      }
+
+      .off {
+        background-color: #0f0;
+      }
     </style>
   </head>
   <body>
     <canvas id="canvas"></canvas>
     <div>
-      <button id="debug">DEBUG</button>
+      <button id="debug" class="off">debug</button>
     </div>
     <script src="force.js"></script>
     <script src="verlet.js"></script>

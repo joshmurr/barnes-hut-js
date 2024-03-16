@@ -1,36 +1,51 @@
 class VerletSystem {
   constructor({
     num = 1,
-    radius = 5,
     forces = [],
     timeStep = 0.25,
     numIter = 4,
     worldMax = [256, 256],
-    mass = () => 100 /* () => number */,
+    massFn = () => 100,
+    radiusFn = (m) => Math.floor(Math.sqrt(m) / 10),
+    colorFn = () => "#C6C944",
   }) {
     this.numParticles = num;
-    this.radius = radius;
     this.forces = forces;
     this.timeStep = timeStep;
     this.numIter = numIter;
     this.worldMax = worldMax;
-    this.mass = mass;
+    this.massFn = massFn;
+    this.radiusFn = radiusFn;
+    this.colorFn = colorFn;
     this.accumTime = 0;
+
+    this.pos = undefined;
+    this.prevPos = undefined;
+    this.acc = undefined;
+    this.mass = undefined;
+    this.radius = undefined;
 
     this.init();
   }
 
   init() {
+    this.acc = new Float32Array(this.numParticles * 2).fill(0);
+    this.mass = new Float32Array(
+      Array.from({ length: this.numParticles }, this.massFn),
+    );
+    this.radius = new Uint8ClampedArray(this.mass.map(this.radiusFn));
+
     const positions = Array.from(
       { length: this.numParticles * 2 },
-      () => this.radius + Math.random() * this.worldMax[0] - this.radius * 2,
+      (_, i) =>
+        this.radius[i] + Math.random() * this.worldMax[0] - this.radius[i] * 2,
     );
 
     this.pos = new Float32Array(positions);
     this.prevPos = new Float32Array(positions);
-    this.acc = new Float32Array(this.numParticles * 2).fill(0);
-    this.mass = new Float32Array(
-      Array.from({ length: this.numParticles }, this.mass),
+
+    this.colors = Array.from({ length: this.numParticles }, (_, i) =>
+      this.colorFn(i),
     );
   }
 
@@ -61,7 +76,6 @@ class VerletSystem {
         const idx = i * 2;
         const [x, y] = this.pos.slice(idx, idx + 2);
         const f = force.run(x, y);
-        if (!f) continue;
         this.acc[idx] += f[0];
         this.acc[idx + 1] += f[1];
       }
@@ -75,7 +89,7 @@ class VerletSystem {
         const xa = this.pos[idxa];
         const ya = this.pos[idxa + 1];
 
-        const radius = Math.sqrt(Math.abs(this.mass[j]));
+        const radius = this.radius[j];
 
         const vx = (this.prevPos[idxa] - xa) * 0.5;
         const vy = (this.prevPos[idxa + 1] - ya) * 0.5;
@@ -94,7 +108,8 @@ class VerletSystem {
           const dx = xb - xa;
           const dy = yb - ya;
           const distsq = dx * dx + dy * dy;
-          const radius2 = Math.sqrt(Math.abs(this.mass[k]));
+
+          const radius2 = this.radius[k];
 
           if (distsq < Math.pow(radius + radius2, 2)) {
             const deltalength = Math.sqrt(distsq);
@@ -129,9 +144,9 @@ class VerletSystem {
       const x = this.pos[idx];
       const y = this.pos[idx + 1];
 
-      ctx.fillStyle = "#C6C944";
+      ctx.fillStyle = this.colors[i];
       ctx.beginPath();
-      ctx.arc(x, y, Math.sqrt(Math.abs(this.mass[i])), 0, Math.PI * 2);
+      ctx.arc(x, y, this.radius[i], 0, Math.PI * 2);
       ctx.fill();
     }
   }

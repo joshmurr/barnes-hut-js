@@ -2,13 +2,14 @@ class BarnesHut {
   constructor(verletSystem, theta) {
     this.verletSystem = verletSystem;
     const [width, height] = verletSystem.worldMax;
+    this.theta = theta;
+    this.calcs = 0;
     this.root = new QuadNode(
       width / 2,
       height / 2,
       Math.max(width, height),
       verletSystem,
     );
-    this.theta = theta; // Barnes-Hut criterion
   }
 
   buildTree() {
@@ -18,6 +19,7 @@ class BarnesHut {
   }
 
   reset() {
+    this.calcs = 0;
     this.root = new QuadNode(
       width / 2,
       height / 2,
@@ -48,6 +50,7 @@ class BarnesHut {
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (node.size / distance < this.theta) {
+        this.calcs++;
         const force = (node.mass * mass) / (distance * distance);
         this.verletSystem.acc[idx] += force * (dx / distance);
         this.verletSystem.acc[idx + 1] += force * (dy / distance);

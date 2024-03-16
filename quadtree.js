@@ -71,16 +71,6 @@ class QuadNode {
     }
   }
 
-  isEdge(child) {
-    const r =
-      child.x - child.size / 2 <= 0 ||
-      child.x + child.size / 2 >= this.verletSystem.worldMax[0] ||
-      child.y - child.size / 2 <= 0 ||
-      child.y + child.size / 2 >= this.verletSystem.worldMax[1];
-
-    return r;
-  }
-
   createChild(quad) {
     const halfSize = this.size / 2;
     switch (quad) {
