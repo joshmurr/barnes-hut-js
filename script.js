@@ -7,23 +7,31 @@ const mouse = [-1, -1];
 
 let DEBUG = 0;
 
-const attractCenter = new Force([width / 2, height / 2], 200, -100, 0.4);
-const repelCenter = new Force([width / 2, height / 2], 100, 200, 2);
+const attractCenter = new Force([width / 2, height / 2], 300, -100, 0.4);
+attractCenter.name = "Attract Centre";
+const repelCenter = new Force([width / 2, height / 2], 130, 200, 2);
+repelCenter.name = "Repel Centre";
 const repelMouse = new Force([-1, -1], 100, 200, 0.8);
+repelMouse.name = "Repel Mouse";
 repelMouse.updater = function (mouse) {
   this.pos[0] = mouse[0];
   this.pos[1] = mouse[1];
 };
+
+const gravity = new Force([0, height], height, 0.03, 0.1);
+gravity.name = "Gravity";
+gravity.type = "linear";
+gravity.axis = "y";
 
 const verletSystem = new VerletSystem({
   num: 500,
   worldMax: [width, height],
   timeStep: 0.01,
   numIter: 4,
-  massFn: () => Math.random() * 300 + 5,
+  massFn: () => Math.random() * 300 + 15,
   radiusFn: (m) => Math.floor(Math.sqrt(m)),
   colorFn: (i) => `hsl(${(Math.sin(i * 0.01) + 1) * 90 + 220}, 100%, 50%)`,
-  forces: [attractCenter, repelCenter, repelMouse],
+  forces: [attractCenter, repelCenter, repelMouse, gravity],
 });
 
 const simulation = new BarnesHut(verletSystem, 0.5);
@@ -61,6 +69,18 @@ debugBtn.addEventListener("click", () => {
     debugBtn.classList.remove("on");
     debugBtn.classList.add("off");
   }
+});
+
+verletSystem.forces.forEach((f) => {
+  const btn = document.createElement("button");
+  btn.innerText = f.name;
+  btn.addEventListener("click", function () {
+    this.classList.toggle("on");
+    this.classList.toggle("off");
+    f.toggle();
+  });
+  btn.classList.add(f.on ? "on" : "off");
+  document.querySelector(".buttons").appendChild(btn);
 });
 
 canvas.addEventListener("mousemove", (e) => {
