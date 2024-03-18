@@ -62,6 +62,10 @@ class Force {
     this.on = !this.on;
   }
 
+  resetAlpha() {
+    this.alpha = 1;
+  }
+
   draw(ctx) {
     ctx.strokeStyle = this.on ? "#f0f" : "#0ff";
     ctx.beginPath();

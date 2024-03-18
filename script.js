@@ -7,7 +7,7 @@ const mouse = [-1, -1];
 
 let DEBUG = 0;
 
-const attractCenter = new Force([width / 2, height / 2], 300, -100, 0.4);
+const attractCenter = new Force([width / 2, height / 2], 1400, -10, 0.4);
 attractCenter.name = "Attract Centre";
 const repelCenter = new Force([width / 2, height / 2], 130, 200, 2);
 repelCenter.name = "Repel Centre";
@@ -24,18 +24,29 @@ gravity.type = "linear";
 gravity.axis = "y";
 
 const verletSystem = new VerletSystem({
-  num: 500,
+  num: 200,
   worldMax: [width, height],
   timeStep: 0.01,
   numIter: 4,
-  massFn: () => Math.random() * 300 + 15,
-  radiusFn: (m) => Math.floor(Math.sqrt(m)),
+  bound: false,
+  massFn: () => 500,
+  radiusFn: (m) => Math.floor(Math.sqrt(Math.abs(m))),
   colorFn: (i) => `hsl(${(Math.sin(i * 0.01) + 1) * 90 + 220}, 100%, 50%)`,
+  // colorFn: () => "#00f",
   forces: [attractCenter, repelCenter, repelMouse, gravity],
 });
 
 const simulation = new BarnesHut(verletSystem, 0.5);
 simulation.buildTree();
+
+const fisheye = new Fisheye({
+  focus: [width / 2, height / 2],
+  radius: 200,
+  distortion: 2,
+  updatePos: true,
+});
+
+verletSystem.fisheyeFn = fisheye.fisheye.bind(fisheye);
 
 const step = () => {
   ctx.fillStyle = "#252120";
@@ -45,6 +56,7 @@ const step = () => {
   for (let i = 0; i < verletSystem.numParticles; i++) {
     simulation.calculateForces(i);
   }
+
   repelMouse.update(mouse);
   if (DEBUG > 0) {
     simulation.root.draw(ctx);
@@ -56,6 +68,8 @@ const step = () => {
   verletSystem.draw(ctx);
   requestAnimationFrame(step);
 };
+
+console.log(simulation);
 
 const debugBtn = document.getElementById("debug");
 debugBtn.addEventListener("click", () => {
@@ -86,6 +100,10 @@ verletSystem.forces.forEach((f) => {
 canvas.addEventListener("mousemove", (e) => {
   mouse[0] = e.clientX;
   mouse[1] = e.clientY;
+
+  repelMouse.update(mouse);
+
+  fisheye.focus = [e.clientX, e.clientY];
 });
 canvas.addEventListener("mouseleave", () => {
   mouse[0] = -1;

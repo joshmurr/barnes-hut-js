@@ -31,6 +31,7 @@ class BarnesHut {
   /* Takes a body and iterates through the tree to calculate the force acting on the body */
   calculateForces(bodyIdx) {
     const idx = bodyIdx * 2;
+
     const calculateForceRecursively = (node) => {
       if (node.body[0] === "PARENT") {
         for (let child of node.children) {
